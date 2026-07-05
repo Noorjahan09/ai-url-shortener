@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ class UrlControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockitoBean
     private UrlService urlService;
 
     private CreateShortURLRequest createRequest;
@@ -38,7 +40,6 @@ class UrlControllerTest {
 
     @BeforeEach
     void setUp() {
-        urlService = mock(UrlService.class);
 
         createRequest = new CreateShortURLRequest();
         createRequest.setOrignalUrl("https://www.example.com/very/long/url");
@@ -124,7 +125,7 @@ class UrlControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.statusCode").value(404))
-                .andExpect(jsonPath("$.error").value("NOT_FOUND"));
+                .andExpect(jsonPath("$.error").value("URL_NOT_FOUND"));
 
         verify(urlService, times(1)).getShortUrl("xyz999");
     }

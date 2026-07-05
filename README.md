@@ -248,7 +248,113 @@ UPDATE urls SET click_count = click_count + 1 WHERE id = 1;
 
 ---
 
+## Engineering Decisions
+
+Engineering decisions represent strategic choices that balance trade-offs between functionality, performance, maintainability, and scalability.
+
+### 1. **Duplicate URL Reuse**
+- **Decision:** Return existing short code if URL already shortened
+- **Trade-off:** Idempotency vs. fresh analytics per request
+- **Reasoning:** Prevents URL bloat in database; aligns with REST idempotency principles
+- **Example:** Two requests for `https://example.com` return the same short code
+- **Future:** Can be changed to `create_if_not_exists` flag in request
+
+### 2. **H2 In-Memory Database**
+- **Decision:** Use H2 for development, easy to switch to PostgreSQL/MySQL
+- **Trade-off:** Speed and simplicity vs. persistence and scale
+- **Reasoning:** Perfect for MVP and local development; all data lost on restart (acceptable for prototype)
+- **Migration Path:** Change `application.properties` datasource URL to PostgreSQL JDBC URL
+- **Schema:** Automatically created via Hibernate with `spring.jpa.hibernate.ddl-auto=create-drop`
+
+### 3. **Layered Architecture (4-Layer)**
+- **Decision:** Controller → Service → Repository → Entity (+ Exception Handler)
+- **Trade-off:** More files vs. clear separation of concerns
+- **Reasoning:** Each layer has single responsibility; easier to test, maintain, and scale
+- **Benefits:**
+  - Controllers handle HTTP only (request/response)
+  - Services contain business logic
+  - Repositories isolate data access
+  - Entities define schema only
+
+### 4. **Global Exception Handling**
+- **Decision:** Centralized `@RestControllerAdvice` for all exceptions
+- **Trade-off:** Less verbose than try-catch blocks vs. less granular control
+- **Reasoning:** Consistent error format; easier API contract; simpler client handling
+- **Error Types:** 404 (Not Found), 400 (Validation), 500 (Internal Server Error)
+
+### 5. **Immutable Creation Timestamps**
+- **Decision:** `createdAt` field cannot be updated; `updatedAt` auto-refreshes
+- **Trade-off:** Prevent accidental data manipulation vs. slight performance overhead
+- **Reasoning:** Audit trail integrity; track actual creation time vs. modification
+- **Implementation:** JPA `@PrePersist` and `@PreUpdate` callbacks
+
+### 6. **DTO Pattern (No Entity Exposure)**
+- **Decision:** APIs work exclusively with DTOs; entities never exposed
+- **Trade-off:** More classes to maintain vs. API stability and flexibility
+- **Reasoning:** Entity schema can evolve independently; prevents leaking internal structure
+- **Benefit:** Can change entity columns without breaking client contracts
+
+### 7. **Validation at DTO Layer**
+- **Decision:** All input validation (`@NotBlank`, `@Pattern`) in request DTOs
+- **Trade-off:** DTOs more complex vs. clean entity and service separation
+- **Reasoning:** Validations are business rules, not database constraints
+- **Pattern URL:** `^(https?://).*` enforces http:// or https:// protocol
+
+### 8. **SecureRandom for Short Code Generation**
+- **Decision:** Use cryptographically strong random (`SecureRandom`)
+- **Trade-off:** Slightly slower than `Math.random()` vs. better randomness quality
+- **Reasoning:** Prevents predictable patterns; important for security
+- **Charset:** BASE62 (0-9a-zA-Z) for URL-safe codes without special characters
+
+### 9. **6-Character Short Codes**
+- **Decision:** Fixed length of 6 characters from BASE62 charset
+- **Trade-off:** Fixed length vs. variable length based on volume
+- **Calculation:** 62^6 = ~56 billion unique combinations
+- **Collision Strategy:** Database uniqueness constraint + retry on collision
+- **Future:** Can use variable length if collision rate becomes issue
+
+### 10. **SLF4J Logging with @Slf4j**
+- **Decision:** Use Lombok's `@Slf4j` annotation for logging
+- **Trade-off:** Dependency on Lombok vs. clean code without boilerplate
+- **Log Levels:**
+  - DEBUG: Short code generation, method entry
+  - INFO: URL created, retrieved, click count updated
+  - WARN: URL not found, validation failures
+  - ERROR: Unexpected exceptions
+
+### 11. **Click Count Increment on Retrieval**
+- **Decision:** Increment click count whenever `getShortUrl()` is called
+- **Trade-off:** Extra database write per request vs. accurate click tracking
+- **Future Optimization:** Could use periodic batch updates or separate analytics table
+- **Current:** Simple load-modify-save pattern
+
+### 12. **REST API Versioning**
+- **Decision:** `/api/v1/urls` base path with version in URL
+- **Trade-off:** Verbose URLs vs. clear version contracts
+- **Future:** Can add v2, v3 endpoints for breaking changes
+- **Benefits:** Multiple versions can coexist; clear deprecation path
+
+### 13. **HTTP Status Codes**
+- **Decision:** 201 CREATED for POST (create), 200 OK for GET, 404/400/500 for errors
+- **Reasoning:** RESTful compliance; client-friendly status codes
+- **Benefits:** Clients can handle responses based on status codes alone
+
+### 14. **Lombok Annotations (Explicit over @Data)**
+- **Decision:** Use `@Getter`, `@Setter`, `@Builder` instead of `@Data`
+- **Trade-off:** More verbose vs. control over generated methods
+- **Reasoning:** `@Data` includes `@EqualsAndHashCode` and `@ToString` which can cause issues in entities
+- **Benefit:** No accidental infinite loops or memory leaks from toString()
+
+### 15. **Optional-based Null Handling**
+- **Decision:** Use Java `Optional` in repository methods
+- **Trade-off:** More code vs. null safety
+- **Reasoning:** Encourages explicit handling of "not found" cases; prevents NPE
+- **Pattern:** `.orElseThrow(() -> new UrlNotFoundException(...))`
+
+---
+
 ## Design Decisions
+
 
 ### 1. **DTO Pattern (No Entity Exposure)**
 - **Decision:** Entities never exposed to clients/controllers

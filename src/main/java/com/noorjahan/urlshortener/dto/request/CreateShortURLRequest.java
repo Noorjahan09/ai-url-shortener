@@ -15,7 +15,7 @@ public class CreateShortURLRequest {
 
     @NotBlank(message = "Original URL is required")
     @Pattern(
-        regexp = "^(https?://).*",
+        regexp = "^(https?://).+",
         message = "Original URL must start with http:// or https://"
     )
     private String orignalUrl;

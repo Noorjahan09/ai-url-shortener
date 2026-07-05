@@ -380,15 +380,182 @@ src/
 
 ---
 
-## License
+## Scenarios: AI-Assisted Development Approaches
 
-This project is open source and available under the MIT License.
+This section demonstrates how to handle three common development scenarios using AI assistants like GitHub Copilot CLI.
+
+### Scenario 1: Greenfield Project (New from Scratch)
+
+**Situation:** Building a URL shortener from zero, no existing codebase.
+
+**Decomposition:**
+```
+Problem: "Build a URL shortener REST API"
+  ├── Data Layer
+  │   ├── Entity design (URL model)
+  │   └── Repository queries
+  ├── Business Logic
+  │   ├── Service interface
+  │   └── URL shortening algorithm
+  ├── API Layer
+  │   ├── REST endpoints
+  │   └── Error handling
+  ├── Utilities
+  │   └── Short code generation
+  └── Testing
+      ├── Unit tests
+      └── Integration tests
+```
+
+**Execution:**
+1. Define entity with Javadocs
+2. Create repository with query methods
+3. Build service interface
+4. Implement service with business logic
+5. Create controller endpoints
+6. Add global exception handler
+7. Write comprehensive unit tests
+
+**Validation:**
+- ✅ All endpoints tested with MockMvc
+- ✅ Service layer mocked in tests
+- ✅ Exception handling verified
+- ✅ Input validation working
+- ✅ Database queries optimized
+
+**AI Contributions:**
+- Suggested entity structure with JPA annotations
+- Recommended DTO pattern for API layer
+- Generated service method contracts
+- Created test templates with Mockito
 
 ---
 
-## Contributing
+### Scenario 2: Brownfield Project (Existing Codebase)
 
-Contributions are welcome! Please follow these guidelines:
+**Situation:** Adding URL shortening feature to existing platform with established patterns.
+
+**Decomposition:**
+```
+Existing System: E-commerce platform
+  └── New Feature: URL shortening for product links
+      ├── Integrate with existing DB
+      │   └── Follow established naming conventions
+      ├── Align with existing API patterns
+      │   └── Use same error response format
+      ├── Follow authentication model
+      │   └── Extend existing security config
+      ├── Reuse existing utilities
+      │   └── Use platform's ID generation
+      └── Match existing test patterns
+          └── Use same testing framework
+```
+
+**Execution:**
+1. Analyze existing code structure and patterns
+2. Create URL entity matching DB conventions
+3. Implement service using existing patterns
+4. Add controller endpoints following REST conventions
+5. Use existing exception handler infrastructure
+6. Write tests matching platform standards
+
+**Validation:**
+- ✅ Entity follows table naming conventions
+- ✅ Error responses consistent with platform
+- ✅ Service integrates with existing auth
+- ✅ Tests use same framework/mocks
+- ✅ No breaking changes to existing code
+
+**AI Contributions:**
+- Analyzed existing patterns and suggested compatible design
+- Generated code following established conventions
+- Identified reusable components (auth, error handling)
+- Refactored code to align with platform standards
+
+---
+
+### Scenario 3: Ambiguous Requirements
+
+**Situation:** Unclear or evolving requirements; "build something like Google's URL shortener."
+
+**Decomposition:**
+```
+Vague Requirement: "URL shortener like Google"
+  ├── Clarify Scope
+  │   ├── Is expiration needed? (DEFERRED)
+  │   ├── Analytics required? (YES - basic clicks)
+  │   ├── Custom codes? (NO - auto-generate)
+  │   ├── Multi-user? (NO - simple service)
+  │   └── Scale? (H2 database for MVP)
+  ├── Define MVP
+  │   ├── Create: Generate short code
+  │   ├── Retrieve: Get original URL
+  │   └── Analytics: Track clicks
+  ├── Plan Enhancements
+  │   ├── QR codes
+  │   ├── Expiration
+  │   ├── Custom codes
+  │   └── Advanced analytics
+  └── Build Iteratively
+      ├── Sprint 1: Core functionality
+      ├── Sprint 2: Error handling + validation
+      ├── Sprint 3: Analytics + testing
+      └── Sprint 4+: Enhancement backlog
+```
+
+**Execution:**
+1. **Define Scope with Stakeholders:**
+   - What are core features?
+   - What can wait for v2?
+   - Performance expectations?
+
+2. **Build MVP First:**
+   - Basic entity with only essential fields
+   - Service with 3 main operations
+   - Simple in-memory database
+
+3. **Add Validation & Error Handling:**
+   - Input validation (HTTP/HTTPS only)
+   - Proper exception responses
+   - Database constraints
+
+4. **Expand with Tests:**
+   - Unit tests for each component
+   - Happy path + error cases
+   - Mocked dependencies
+
+5. **Plan v2 Enhancements:**
+   - Document in "Future Improvements"
+   - Maintain backlog in development-tracking.md
+
+**Validation:**
+- ✅ MVP meets core requirements
+- ✅ Extensible design for future features
+- ✅ Clear separation of concerns
+- ✅ Comprehensive testing
+- ✅ Well-documented decisions
+
+**AI Contributions:**
+- Helped prioritize ambiguous requirements into MVP
+- Suggested extensible architecture
+- Identified future enhancement patterns
+- Created development tracking system
+- Generated flexible code for evolving needs
+
+---
+
+## Key Takeaways
+
+| Aspect | Greenfield | Brownfield | Ambiguous |
+|--------|-----------|-----------|----------|
+| **Challenge** | Start from scratch | Respect existing patterns | Unclear goals |
+| **AI Role** | Generate boilerplate, design | Analyze & align patterns | Prioritize & clarify |
+| **Validation** | Test comprehensively | Match conventions | Iterate with stakeholders |
+| **Outcome** | Clean new code | Integrated feature | MVP + backlog |
+
+---
+
+## Contributions are welcome! Please follow these guidelines:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/improvement`)
 3. Commit changes (`git commit -m 'Add improvement'`)
